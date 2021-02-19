@@ -93,13 +93,14 @@ int main(int, const char* argv[])
     std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
               << endl;
     std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
-    
+
     std::cout << "### test SDF sm2 verify" << std::endl;
-    auto signatureResult = Sign(keyPair, hash);
+    start = clock();
     for (size_t i = 0; i < loopRound; i++)
     {
         SDFSM2Verify(keyPair.pub(), signatureResult, hash);
     }
+    end = clock();
     std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
               << endl;
     std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
