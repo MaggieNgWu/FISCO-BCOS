@@ -21,10 +21,13 @@
  * @date: 2021
  */
 
-#include <libdevcrypto/CryptoInterface.h>
 #include <libdevcrypto/Common.h>
+#include <libdevcrypto/CryptoInterface.h>
 #include <libdevcrypto/Hash.h>
+#include <libdevcrypto/SM2Signature.h>
 #include <libdevcrypto/SM3Hash.h>
+#include <libdevcrypto/sdf/SDFSM2Signature.h>
+#include <libdevcrypto/sdf/SDFSM3Hash.h>
 using namespace dev::crypto;
 using namespace dev;
 int main(int, const char* argv[])
@@ -34,26 +37,72 @@ int main(int, const char* argv[])
     g_BCOSConfig.setUseSMCrypto(true);
     KeyPair keyPair = KeyPair::create();
     getchar();
-    std::cout << "###begin test" << std::endl;
+    std::cout << "#### begin test" << std::endl;
+
     // calculate hash
-    std::cout << "#### test sm3" << std::endl;
+    std::cout << "### test sm3" << std::endl;
+    clock_t start = clock();
     std::string input = "test_sm3";
-    for(size_t i = 0; i < loopRound; i++)
+    for (size_t i = 0; i < loopRound; i++)
     {
         sm3(input);
     }
-    std::cout << "### test sign" << std::endl;
-    auto hash =  sm3(input);
-    for(size_t i = 0; i < loopRound; i++)
+    clock_t end = clock();
+
+    std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
+              << endl;
+    std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
+
+
+    std::cout << "### test SDF sm3" << std::endl;
+    start = clock();
+    for (size_t i = 0; i < loopRound; i++)
     {
-        Sign(keyPair, hash);
+        SDFSM3(input);
     }
-    std::cout << "### test verify" << std::endl;
+    end = clock();
+    std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
+              << endl;
+    std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
+
+    std::cout << "### test sm2 sign" << std::endl;
+    auto hash = sm3(input);
+    start = clock();
+    for (size_t i = 0; i < loopRound; i++)
+    {
+        sm2Sign(keyPair, hash);
+    }
+    end = clock();
+    std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
+              << endl;
+    std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
+
+    std::cout << "### test SDF sm2 sign" << std::endl;
+    for (size_t i = 0; i < loopRound; i++)
+    {
+        SDFSM2Sign(keyPair, hash);
+    }
+    std::cout << "### test sm2 verify" << std::endl;
     auto signatureResult = Sign(keyPair, hash);
-    for(size_t i = 0; i < loopRound; i++)
+    start = clock();
+    for (size_t i = 0; i < loopRound; i++)
     {
-        crypto::Verify(keyPair.pub(), signatureResult, hash);
+        sm2Verify(keyPair.pub(), signatureResult, hash);
     }
-    std::cout << "#### test end"<<std::endl;
+    end = clock();
+    std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
+              << endl;
+    std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
+    
+    std::cout << "### test SDF sm2 verify" << std::endl;
+    auto signatureResult = Sign(keyPair, hash);
+    for (size_t i = 0; i < loopRound; i++)
+    {
+        SDFSM2Verify(keyPair.pub(), signatureResult, hash);
+    }
+    std::cout << "Number of calculate round: " << loopRound << ",  duration(ms) : " << end - start
+              << endl;
+    std::cout << "Times per second: "<< loopRound / ((end - start)/1000)<<endl<<endl;
+    std::cout << "#### test end" << std::endl;
     getchar();
 }
