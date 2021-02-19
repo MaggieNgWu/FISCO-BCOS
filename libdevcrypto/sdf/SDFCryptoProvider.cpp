@@ -12,7 +12,7 @@ namespace crypto
 {
 SDFCryptoProvider::SDFCryptoProvider()
 {
-    cout << "open device" << endl;
+    //cout << "open device" << endl;
     SGD_RV deviceStatus = SDF_OpenDevice(&m_deviceHandle);
     if (deviceStatus != SDR_OK)
     {
@@ -27,7 +27,7 @@ SDFCryptoProvider::SDFCryptoProvider()
                           << LOG_KV("message", GetErrorMessage(deviceStatus));
         throw sessionStatus;
     }
-    cout << "finish hsm initialization." << endl;
+    //cout << "finish hsm initialization." << endl;
 }
 
 SDFCryptoProvider::~SDFCryptoProvider()
@@ -209,11 +209,11 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int const digestLen, unsigned char const* signature,
     const unsigned int signatureLen, bool* result)
 {
-    cout << "@@Start verify signature" << endl;
-    cout << "@@Params are key.public: " << toHex(bytesConstRef{key.PublicKey(), 64})
-         << " hash: " << toHex(bytesConstRef{digest, 32})
-         << " signature:" << toHex(bytesConstRef{signature, 64}) << "digestLen:" << digestLen
-         << " signatureLen:" << signatureLen << endl;
+    // cout << "@@Start verify signature" << endl;
+    // cout << "@@Params are key.public: " << toHex(bytesConstRef{key.PublicKey(), 64})
+    //      << " hash: " << toHex(bytesConstRef{digest, 32})
+    //      << " signature:" << toHex(bytesConstRef{signature, 64}) << "digestLen:" << digestLen
+    //      << " signatureLen:" << signatureLen << endl;
     switch (algorithm)
     {
     case SM2:
@@ -224,23 +224,17 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         }
         ECCrefPublicKey eccKey;
         eccKey.bits = 32 * 8;
-        cout << "verify" << endl;
+        // cout << "verify" << endl;
 
         memcpy(eccKey.x, key.PublicKey(), 32);
         memcpy(eccKey.y, key.PublicKey() + 32, 32);
-        // strncpy((char*)eccKey.x, (const char*)key.PublicKey(), 32);
-        // strncpy((char*)eccKey.y, (const char*)key.PublicKey() + 32, 32);
-        cout << "Get key, x:" << toHex(bytesConstRef{(const unsigned char*)eccKey.x, 32})
-             << " y:" << toHex(bytesConstRef{(const unsigned char*)eccKey.y, 32}) << endl;
-        // cout << "Get key:"<< toHex(bytesConstRef{(const unsigned char*)&eccKey.x,32}
-        // <<toHex(bytesConstRef{(const unsigned char*)eccKey.y,32}) << enddl;
+        // cout << "Get key, x:" << toHex(bytesConstRef{(const unsigned char*)eccKey.x, 32})
+        //      << " y:" << toHex(bytesConstRef{(const unsigned char*)eccKey.y, 32}) << endl;
         ECCSignature eccSignature;
         memcpy(eccSignature.r, signature, 32);
         memcpy(eccSignature.s, signature + 32, 32);
-        // strncpy((char*)eccSignature.r, (const char*)signature, 32);
-        // strncpy((char*)eccSignature.s, (const char*)signature + 32, 32);
-        cout << "Get signature: " << toHex(bytesConstRef{(const unsigned char*)eccSignature.r, 32})
-             << toHex(bytesConstRef{(const unsigned char*)eccSignature.s, 32}) << endl;
+        // cout << "Get signature: " << toHex(bytesConstRef{(const unsigned char*)eccSignature.r, 32})
+        //      << toHex(bytesConstRef{(const unsigned char*)eccSignature.s, 32}) << endl;
         SGD_RV code = SDF_ExternalVerify_ECC(
             m_sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest, digestLen, &eccSignature);
         if (code == SDR_OK)

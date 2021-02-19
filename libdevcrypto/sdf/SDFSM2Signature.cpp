@@ -35,16 +35,16 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
 {
     // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
-    cout << "### Sign" << endl;
+    // cout << "### Sign" << endl;
     unsigned char* signature = (unsigned char*)malloc(64);
     unsigned int signLen;
     Key key(_keyPair);
-    cout << "#### keyPair.secret " << toHex(bytesConstRef{_keyPair.secret().data(), 32}) << endl;
+    // cout << "#### keyPair.secret " << toHex(bytesConstRef{_keyPair.secret().data(), 32}) << endl;
     h256 privk((byte const*)key.PrivateKey(),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
 
-    cout << "#### key.priv " << privk << endl;
-    cout << "#### Call Sign" << endl;
+    // cout << "#### key.priv " << privk << endl;
+    // cout << "#### Call Sign" << endl;
 
     // According to the SM2 standard
     // step 1 : calculate M' = Za || M
@@ -61,16 +61,16 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
         throw "[SM2::sign] malloc BigNumber failed";
     }
     string pri = toHex(bytesConstRef{_keyPair.secret().data(), 32});
-    cout<<"1111111"<<endl;
+    // cout<<"1111111"<<endl;
     BN_hex2bn(&res, (const char *)pri.c_str());
     EC_KEY* sm2Key = EC_KEY_new_by_curve_name(NID_sm2);
     EC_KEY_set_private_key(sm2Key, res);
-    cout<<"222222"<<endl;
+    // cout<<"222222"<<endl;
     if (!SM2::sm2GetZ(pri, (const EC_KEY*)sm2Key, zValue, zValueLen))
     {
         throw "Error Of Compute Z";
     }
-    cout<<"z value: "<<toHex(bytesConstRef{zValue,32}) <<endl;
+    // cout<<"z value: "<<toHex(bytesConstRef{zValue,32}) <<endl;
     unsigned char hashResult[SM3_DIGEST_LENGTH];
     unsigned int uiHashResultLen;
     unsigned int code = provider.HashWithZ(SM3, (const char*)zValue, zValueLen,
@@ -81,15 +81,15 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     }
 
     code = provider.Sign(key, SM2, (const unsigned char*)hashResult, 32, signature, &signLen);
-    cout << "##### code = " << code << endl;
+    // cout << "##### code = " << code << endl;
     if (code != SDR_OK)
     {
         throw provider.GetErrorMessage(code);
     }
-    cout << "keyPair.pub " << toHex(bytesConstRef{_keyPair.pub().data(), 64}) << endl;
+    // cout << "keyPair.pub " << toHex(bytesConstRef{_keyPair.pub().data(), 64}) << endl;
     char sign_s[32];
     memcpy(sign_s, signature + 32, 32);
-    cout << "signature : " << toHex(bytesConstRef{(const unsigned char*)signature, 64}) << endl;
+    // cout << "signature : " << toHex(bytesConstRef{(const unsigned char*)signature, 64}) << endl;
     h256 r((byte const*)signature, FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
     h256 s((byte const*)(signature + 32),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
@@ -102,13 +102,13 @@ bool dev::crypto::SDFSM2Verify(
     // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     // parse input
-    cout << "pub key: " << toHex(bytesConstRef{_pubKey.ref().data(), 64}) << endl;
+    // cout << "pub key: " << toHex(bytesConstRef{_pubKey.ref().data(), 64}) << endl;
     char emptyPrivateKey[32];
     Key key((unsigned char*)emptyPrivateKey, (unsigned char*)_pubKey.ref().data());
     bool verifyResult;
-    cout << "key.pub " << toHex(bytesConstRef{key.PublicKey(), 64}) << endl;
-    cout << "sig:" << toHex(bytesConstRef{_sig->asBytes().data(), 64}) << endl;
-    cout << "hash.ref.data:" << toHex(bytesConstRef{_hash.ref().data(), 32}) << endl;
+    // cout << "key.pub " << toHex(bytesConstRef{key.PublicKey(), 64}) << endl;
+    // cout << "sig:" << toHex(bytesConstRef{_sig->asBytes().data(), 64}) << endl;
+    // cout << "hash.ref.data:" << toHex(bytesConstRef{_hash.ref().data(), 32}) << endl;
 
     // Get Z
     EC_KEY* sm2Key = NULL;
@@ -145,7 +145,7 @@ bool dev::crypto::SDFSM2Verify(
         throw provider.GetErrorMessage(code);
     }
     
-    cout << "hash(hash):" << toHex(bytesConstRef{(const unsigned char*)hashResult, 32}) << endl;
+    // cout << "hash(hash):" << toHex(bytesConstRef{(const unsigned char*)hashResult, 32}) << endl;
     code = provider.Verify(
         key, SM2, (const unsigned char*)hashResult, 32, _sig->asBytes().data(), 64, &verifyResult);
     // cout << _pubKey << _sig->r << _hash<<endl;
