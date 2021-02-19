@@ -48,10 +48,9 @@ int main(int, const char* argv[])
         sm3(input);
     }
     clock_t end = clock();
-
     std::cout << "Number of calculate round: " << loopRound
-              << ",  duration(s) : " << (float)(end - start) / CLOCKS_PER_SEC << endl;
-    std::cout << "Times per second: " << loopRound / ((float)(end - start) / CLOCKS_PER_SEC) << endl
+              << ",  duration(s) : " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
 
 
@@ -62,10 +61,9 @@ int main(int, const char* argv[])
         SDFSM3(input);
     }
     end = clock();
-
     std::cout << "Number of calculate round: " << loopRound
-              << ",  duration(s) : " << (float)(end - start) / CLOCKS_PER_SEC << endl;
-    std::cout << "Times per second: " << loopRound / ((float)(end - start) / CLOCKS_PER_SEC) << endl
+              << ",  duration(s) : " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
 
     std::cout << "### test sm2 sign" << std::endl;
@@ -77,8 +75,8 @@ int main(int, const char* argv[])
     }
     end = clock();
     std::cout << "Number of calculate round: " << loopRound
-              << ",  duration(s) : " << (float)(end - start) / CLOCKS_PER_SEC << endl;
-    std::cout << "Times per second: " << loopRound / ((float)(end - start) / CLOCKS_PER_SEC) << endl
+              << ",  duration(s) : " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
 
     std::cout << "### test SDF sm2 sign" << std::endl;
@@ -89,8 +87,8 @@ int main(int, const char* argv[])
     }
     end = clock();
     std::cout << "Number of calculate round: " << loopRound
-              << ",  duration(s) : " << (float)(end - start) / CLOCKS_PER_SEC << endl;
-    std::cout << "Times per second: " << loopRound / ((float)(end - start) / CLOCKS_PER_SEC) << endl
+              << ",  duration(s) : " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
 
     std::cout << "### test sm2 verify" << std::endl;
@@ -102,8 +100,8 @@ int main(int, const char* argv[])
     }
     end = clock();
     std::cout << "Number of calculate round: " << loopRound
-              << ",  duration(s) : " << (float)(end - start) / CLOCKS_PER_SEC << endl;
-    std::cout << "Times per second: " << loopRound / ((float)(end - start) / CLOCKS_PER_SEC) << endl
+              << ",  duration(s) : " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
 
     std::cout << "### test SDF sm2 verify" << std::endl;
@@ -114,8 +112,8 @@ int main(int, const char* argv[])
     }
     end = clock();
     std::cout << "Number of calculate round: " << loopRound
-              << ",  duration(s) : " << (float)(end - start) / CLOCKS_PER_SEC << endl;
-    std::cout << "Times per second: " << loopRound / ((float)(end - start) / CLOCKS_PER_SEC) << endl
+              << ",  duration(s) : " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
     std::cout << "#### test end" << std::endl;
     getchar();
