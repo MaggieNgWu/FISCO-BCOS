@@ -48,7 +48,6 @@ void checkPBFTMsg(T const& msg, KeyPair const _keyPair = KeyPair::create(),
     {
         if (g_BCOSConfig.SMCrypto())
         {
-            cout << "???? pub:"<< toHex(bytesConstRef{(const unsigned char*)_keyPair.pub().data(),64})<<"\nblock hash:"<<msg.block_hash<<" \n signature:"<< sm2SignatureFromBytes(msg.sig)<<endl;
             bool result =
                 crypto::Verify(_keyPair.pub(), sm2SignatureFromBytes(msg.sig), msg.block_hash);
             BOOST_CHECK_EQUAL(result, true);

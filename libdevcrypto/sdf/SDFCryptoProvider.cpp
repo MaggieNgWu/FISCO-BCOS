@@ -56,20 +56,23 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     {
     case SM2:
     {
+        cout << "$$$ SDFCryptoProvider::Sign 1 :" << clock() << endl;
         ECCrefPrivateKey eccKey;
         eccKey.bits = 32 * 8;
         memcpy(eccKey.D,key.PrivateKey(),32);
-        unsigned char tmpData[512];
+        cout << "$$$ SDFCryptoProvider::Sign 2 start call hsm :" << clock() << endl;
+        //unsigned char tmpData[64];
         SGD_RV signCode = SDF_ExternalSign_ECC(m_sessionHandle, SGD_SM2_1, &eccKey,
-            (SGD_UCHAR*)digest, digestLen, (ECCSignature*)tmpData);
+            (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
         if (signCode != SDR_OK)
         {
             CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] failed make sign."
                               << LOG_KV("message", GetErrorMessage(signCode));
             return signCode;
         }
-        memcpy(signature, tmpData, 64);
-        *signatureLen = 512;
+        cout << "$$$ SDFCryptoProvider::Sign 3 finish call hsm :" << clock() << endl;
+        //memcpy(signature, tmpData, 64);
+        *signatureLen = 64;
         return SDR_OK;
     }
     default:
