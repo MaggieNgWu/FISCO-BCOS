@@ -83,6 +83,7 @@ int main(int, const char* argv[])
     start = clock();
     for (size_t i = 0; i < loopRound; i++)
     {
+
         SDFSM2Sign(keyPair, hash);
     }
     end = clock();
@@ -91,8 +92,8 @@ int main(int, const char* argv[])
     std::cout << "Times per second: " << loopRound / ((double)(end - start) / CLOCKS_PER_SEC) << endl
               << endl;
 
+    auto signatureResult = sm2Sign(keyPair, hash);
     std::cout << "### test sm2 verify" << std::endl;
-    auto signatureResult = Sign(keyPair, hash);
     start = clock();
     for (size_t i = 0; i < loopRound; i++)
     {
