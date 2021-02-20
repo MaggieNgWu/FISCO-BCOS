@@ -58,9 +58,8 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     {
         ECCrefPrivateKey eccKey;
         eccKey.bits = 32 * 8;
-        strncpy((char*)eccKey.D, (const char*)key.PrivateKey(), 32);
+        memcpy(eccKey.D,key.PrivateKey(),32);
         unsigned char tmpData[512];
-        memset(tmpData, 0, sizeof(tmpData));
         SGD_RV signCode = SDF_ExternalSign_ECC(m_sessionHandle, SGD_SM2_1, &eccKey,
             (SGD_UCHAR*)digest, digestLen, (ECCSignature*)tmpData);
         if (signCode != SDR_OK)
@@ -70,7 +69,6 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
             return signCode;
         }
         memcpy(signature, tmpData, 64);
-        // strncpy((char*)signature, (const char*)tmpData, 64);
         *signatureLen = 512;
         return SDR_OK;
     }

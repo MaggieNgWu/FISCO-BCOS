@@ -36,7 +36,7 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     // cout << "### Sign" << endl;
-    unsigned char* signature = (unsigned char*)malloc(64);
+    unsigned char signature[64];
     unsigned int signLen;
     Key key(_keyPair);
     // cout << "#### keyPair.secret " << toHex(bytesConstRef{_keyPair.secret().data(), 32}) << endl;
@@ -87,8 +87,6 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
         throw provider.GetErrorMessage(code);
     }
     // cout << "keyPair.pub " << toHex(bytesConstRef{_keyPair.pub().data(), 64}) << endl;
-    char sign_s[32];
-    memcpy(sign_s, signature + 32, 32);
     // cout << "signature : " << toHex(bytesConstRef{(const unsigned char*)signature, 64}) << endl;
     h256 r((byte const*)signature, FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
     h256 s((byte const*)(signature + 32),

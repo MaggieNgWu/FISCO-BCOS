@@ -28,6 +28,7 @@
 #include <libdevcrypto/SM3Hash.h>
 #include <libdevcrypto/sdf/SDFSM2Signature.h>
 #include <libdevcrypto/sdf/SDFSM3Hash.h>
+#include <time.h>　
 using namespace dev::crypto;
 using namespace dev;
 int main(int, const char* argv[])
