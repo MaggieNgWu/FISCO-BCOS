@@ -34,7 +34,7 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     KeyPair const& _keyPair, const h256& _hash)
 {
     clock_t start = clock();
-    cout << "@@@@ SDFSM2Sign start " << start << endl;
+    cout << "@@@@ SDFSM2Sign start " << endl;
     // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     // cout << "### Sign" << endl;
@@ -45,7 +45,7 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     h256 privk((byte const*)key.PrivateKey(),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
     clock_t step1 = clock();
-    cout << "@@@@ SDFSM2Sign step 1 prepare key and HSM " << step1 - start << endl;
+    cout << "@@@@ SDFSM2Sign step 1 prepare key and HSM , duration: " << step1 - start << endl;
     // cout << "#### key.priv " << privk << endl;
     // cout << "#### Call Sign" << endl;
 
@@ -74,7 +74,7 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
         throw "Error Of Compute Z";
     }
     clock_t step2 = clock();
-    cout << "@@@@ SDFSM2Sign step 2 getz " << step2 - step1 << endl;
+    cout << "@@@@ SDFSM2Sign step 2 getz , duration: " << step2 - step1 << endl;
     
     // cout<<"z value: "<<toHex(bytesConstRef{zValue,32}) <<endl;
     unsigned char hashResult[SM3_DIGEST_LENGTH];
@@ -86,7 +86,7 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
         throw provider.GetErrorMessage(code);
     }
     clock_t step3 = clock();
-    cout << "@@@@ SDFSM2Sign step 3 SM3(Z|M) " << step3 - step2 << endl;
+    cout << "@@@@ SDFSM2Sign step 3 SM3(Z|M) , duration: " << step3 - step2 << endl;
     code = provider.Sign(key, SM2, (const unsigned char*)hashResult, 32, signature, &signLen);
     // cout << "##### code = " << code << endl;
     if (code != SDR_OK)
@@ -94,14 +94,14 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
         throw provider.GetErrorMessage(code);
     }
     clock_t step4 = clock();
-    cout << "@@@@ SDFSM2Sign step 4 Sign " << step4 - step3 << endl;
+    cout << "@@@@ SDFSM2Sign step 4 Sign , duration: " << step4 - step3 << endl;
     // cout << "keyPair.pub " << toHex(bytesConstRef{_keyPair.pub().data(), 64}) << endl;
     // cout << "signature : " << toHex(bytesConstRef{(const unsigned char*)signature, 64}) << endl;
     h256 r((byte const*)signature, FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
     h256 s((byte const*)(signature + 32),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
     clock_t step5 = clock();
-    cout << "@@@@ SDFSM2Sign step 5 finish " << step5 - step4 << endl;
+    cout << "@@@@ SDFSM2Sign step 5 finish , duration: " << step5 - step4 << endl;
     return make_shared<SM2Signature>(r, s, _keyPair.pub());
 }
 
@@ -119,7 +119,7 @@ bool dev::crypto::SDFSM2Verify(
     Key key((unsigned char*)emptyPrivateKey, (unsigned char*)_pubKey.ref().data());
     bool verifyResult;
     clock_t step1 = clock();
-    cout << "@@@@ SDFSM2Verify step 1 prepare key and HSM " << step1 - start << endl;
+    cout << "@@@@ SDFSM2Verify step 1 prepare key and HSM , duration: " << step1 - start << endl;
     
     
     // cout << "key.pub " << toHex(bytesConstRef{key.PublicKey(), 64}) << endl;
@@ -152,7 +152,7 @@ bool dev::crypto::SDFSM2Verify(
         throw "[SM2::veify] Error Of Compute Z";
     }
     clock_t step2 = clock();
-    cout << "@@@@ SDFSM2Verify step 2 getz " << step2 - step1 << endl;
+    cout << "@@@@ SDFSM2Verify step 2 getz, duration:  " << step2 - step1 << endl;
     
     unsigned char hashResult[SM3_DIGEST_LENGTH];
     unsigned int uiHashResultLen;
@@ -164,13 +164,13 @@ bool dev::crypto::SDFSM2Verify(
     }
 
     clock_t step3 = clock();
-    cout << "@@@@ SDFSM2Verify step 3 SM3(Z|M) " << step3 - step2 << endl;
+    cout << "@@@@ SDFSM2Verify step 3 SM3(Z|M), duration: " << step3 - step2 << endl;
     
     // cout << "hash(hash):" << toHex(bytesConstRef{(const unsigned char*)hashResult, 32}) << endl;
     code = provider.Verify(
         key, SM2, (const unsigned char*)hashResult, 32, _sig->asBytes().data(), 64, &verifyResult);
     clock_t step4 = clock();
-    cout << "@@@@ SDFSM2Verify step 4 Verify " << step4 - step3 << endl;
+    cout << "@@@@ SDFSM2Verify step 4 Verify finish, duration: " << step4 - step3 << endl;
     // cout << _pubKey << _sig->r << _hash<<endl;
     if (code == SDR_OK)
     {
