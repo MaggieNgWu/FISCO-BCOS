@@ -56,13 +56,13 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     {
     case SM2:
     {
-        clock_t start = clock();
-        cout << "$$$ SDFCryptoProvider::Sign start "  << endl;
+        //clock_t start = clock();
+        //cout << "$$$ SDFCryptoProvider::Sign start "  << endl;
         ECCrefPrivateKey eccKey;
         eccKey.bits = 32 * 8;
         memcpy(eccKey.D,key.PrivateKey(),32);
-        clock_t step1 = clock();
-        cout << "$$$ SDFCryptoProvider::Sign 1 prepare key, duration:" << step1-start << endl;
+        //clock_t step1 = clock();
+        //cout << "$$$ SDFCryptoProvider::Sign 1 prepare key, duration:" << step1-start << endl;
         //unsigned char tmpData[64];
         SGD_RV signCode = SDF_ExternalSign_ECC(m_sessionHandle, SGD_SM2_1, &eccKey,
             (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
@@ -72,8 +72,8 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
                               << LOG_KV("message", GetErrorMessage(signCode));
             return signCode;
         }
-        clock_t step2 = clock();
-        cout << "$$$ SDFCryptoProvider::Sign 2 finish call hsm. duration:" << step2-step1 << endl;
+        //clock_t step2 = clock();
+        //cout << "$$$ SDFCryptoProvider::Sign 2 finish call hsm. duration:" << step2-step1 << endl;
         //memcpy(signature, tmpData, 64);
         *signatureLen = 64;
         return SDR_OK;
@@ -228,17 +228,11 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         }
         ECCrefPublicKey eccKey;
         eccKey.bits = 32 * 8;
-        // cout << "verify" << endl;
-
         memcpy(eccKey.x, key.PublicKey(), 32);
         memcpy(eccKey.y, key.PublicKey() + 32, 32);
-        // cout << "Get key, x:" << toHex(bytesConstRef{(const unsigned char*)eccKey.x, 32})
-        //      << " y:" << toHex(bytesConstRef{(const unsigned char*)eccKey.y, 32}) << endl;
         ECCSignature eccSignature;
         memcpy(eccSignature.r, signature, 32);
         memcpy(eccSignature.s, signature + 32, 32);
-        // cout << "Get signature: " << toHex(bytesConstRef{(const unsigned char*)eccSignature.r, 32})
-        //      << toHex(bytesConstRef{(const unsigned char*)eccSignature.s, 32}) << endl;
         SGD_RV code = SDF_ExternalVerify_ECC(
             m_sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest, digestLen, &eccSignature);
         if (code == SDR_OK)
