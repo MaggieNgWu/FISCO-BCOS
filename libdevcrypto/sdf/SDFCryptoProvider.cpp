@@ -18,6 +18,7 @@ SDFCryptoProvider::SDFCryptoProvider()
     {
         CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open device."
                           << LOG_KV("message", GetErrorMessage(deviceStatus));
+        
         throw deviceStatus;
     }
     SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &m_sessionHandle);
@@ -299,7 +300,7 @@ std::string SDFCryptoProvider::GetErrorMessage(SGD_RV code)
     case SDR_KEYERR:
         return "key error";
     default:
-        return "unkown";
+        return "unkown code " + std::to_string(code);
     }
 }
 
