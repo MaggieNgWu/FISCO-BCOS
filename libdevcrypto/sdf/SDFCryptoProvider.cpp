@@ -122,7 +122,7 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         SGD_RV code = SDF_HashInit(m_sessionHandle, SGD_SM3, NULL, NULL, 0);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashInit fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Hash.SDF_HashInit fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
@@ -130,7 +130,7 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         code = SDF_HashUpdate(m_sessionHandle, (SGD_UCHAR*)message, messageLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashUpdate fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Hash.SDF_HashUpdate fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
@@ -138,7 +138,7 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         code = SDF_HashFinal(m_sessionHandle, (SGD_UCHAR*)digest, digestLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashFinal fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Hash.SDF_HashFinal fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
@@ -159,14 +159,14 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
         SGD_RV code = SDF_HashInit(m_sessionHandle, SGD_SM3, NULL, NULL, 0);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashInit fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashInit fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
         code = SDF_HashUpdate(m_sessionHandle, (SGD_UCHAR*)zValue, zValueLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashUpdate fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashUpdate fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
@@ -174,7 +174,7 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
         code = SDF_HashUpdate(m_sessionHandle, (SGD_UCHAR*)message, messageLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashUpdate fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashUpdate fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
@@ -182,7 +182,7 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
         code = SDF_HashFinal(m_sessionHandle, (SGD_UCHAR*)digest, digestLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] SDF_HashFinal fialed."
+            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashFinal fialed."
                               << LOG_KV("message", GetErrorMessage(code));
             return code;
         }
