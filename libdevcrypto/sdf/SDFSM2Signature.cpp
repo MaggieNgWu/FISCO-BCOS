@@ -179,3 +179,22 @@ bool dev::crypto::SDFSM2Verify(
         throw provider.GetErrorMessage(code);
     }
 }
+
+h512 dev::crypto::SDFSM2Recover(std::shared_ptr<crypto::Signature> _s, h256 const& _message)
+{
+    auto _sig = dynamic_pointer_cast<SM2Signature>(_s);
+    if (!_sig)
+    {
+        return h512{};
+    }
+
+    if (!_sig->isValid())
+    {
+        return h512{};
+    }
+    if (SDFSM2Verify(_sig->v, _sig, _message))
+    {
+        return _sig->v;
+    }
+    return h512{};
+}

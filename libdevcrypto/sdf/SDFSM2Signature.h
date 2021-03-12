@@ -34,6 +34,5 @@ bool SDFSM2Verify(h512 const& _pubKey, std::shared_ptr<crypto::Signature> _sig, 
 h512 SDFSM2Recover(std::shared_ptr<crypto::Signature> _sig, const h256& _hash);
 std::shared_ptr<crypto::Signature> SDFSM2SignatureFromRLP(RLP const& _rlp, size_t _start);
 std::shared_ptr<crypto::Signature> SDFSM2SignatureFromBytes(std::vector<unsigned char> _data);
-std::pair<bool, std::vector<unsigned char> > SDFSM2Recover(bytesConstRef _in);
 }  // namespace crypto
 }  // namespace dev

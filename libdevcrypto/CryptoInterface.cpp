@@ -85,9 +85,10 @@ void dev::crypto::initSMCrypto()
         const unsigned char*, size_t, const unsigned char*)>(dev::crypto::sm4Decrypt);
     Sign = SDFSM2Sign;
     Verify = SDFSM2Verify;
+    Recover = SDFSM2Recover;
     //Sign = sm2Sign;
     //Verify = sm2Verify;
-    Recover = sm2Recover;
+    //Recover = sm2Recover;
 }
 
 void dev::crypto::initCrypto()
