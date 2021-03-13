@@ -24,6 +24,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <mutex>
 #define CRYPTO_LOG(LEVEL) LOG(LEVEL) << "[CRYPTO] "
 
 using namespace std;
@@ -94,7 +95,7 @@ private:
     ~SDFCryptoProvider();
     SDFCryptoProvider(const SDFCryptoProvider&);
     SDFCryptoProvider& operator=(const SDFCryptoProvider&);
-
+    std::mutex mtx; 
 public:
     /**
      * Return the instance

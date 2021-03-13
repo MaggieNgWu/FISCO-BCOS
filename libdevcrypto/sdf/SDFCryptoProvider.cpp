@@ -27,7 +27,7 @@ SDFCryptoProvider::SDFCryptoProvider()
                           << LOG_KV("message", GetErrorMessage(deviceStatus));
         throw sessionStatus;
     }
-    //cout << "finish hsm initialization." << endl;
+    CRYPTO_LOG(INFO) << "[SDF::SDFCryptoProvider] Finish HSM open device.";
 }
 
 SDFCryptoProvider::~SDFCryptoProvider()
@@ -52,6 +52,8 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int const digestLen, unsigned char* signature,
     unsigned int* signatureLen)
 {
+
+    mtx.lock();
     switch (algorithm)
     {
     case SM2:
@@ -85,6 +87,7 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
 
 unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 {
+    mtx.lock();
     switch (algorithm)
     {
     case SM2:
@@ -115,6 +118,8 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* message,
     unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen)
 {
+
+    mtx.lock();
     switch (algorithm)
     {
     case SM3:
@@ -152,6 +157,7 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
     unsigned int const zValueLen, char const* message, unsigned int const messageLen,
     unsigned char* digest, unsigned int* digestLen)
 {
+    mtx.lock();
     switch (algorithm)
     {
     case SM3:
@@ -195,6 +201,7 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
 
 unsigned int SDFCryptoProvider::PrintDeviceInfo()
 {
+    mtx.lock();
     DEVICEINFO stDeviceInfo;
     SGD_RV code = SDF_GetDeviceInfo(m_sessionHandle, &stDeviceInfo);
     if (code == SDR_OK)
@@ -213,6 +220,8 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int const digestLen, unsigned char const* signature,
     const unsigned int signatureLen, bool* result)
 {
+
+    mtx.lock();
     // cout << "@@Start verify signature" << endl;
     // cout << "@@Params are key.public: " << toHex(bytesConstRef{key.PublicKey(), 64})
     //      << " hash: " << toHex(bytesConstRef{digest, 32})
