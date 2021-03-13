@@ -32,24 +32,36 @@ using namespace dev::crypto;
 using namespace dev;
 int main(int, const char* argv[])
 {
+    size_t loopRound = atoi(argv[1]);
+    initSMCrypto();
+    g_BCOSConfig.setUseSMCrypto(true);
+    KeyPair keyPair = KeyPair::create();
+    
     std::cout << "#### begin function test" << std::endl;
     KeyPair kp = KeyPair::create();
     
+    std::string pubHex = toHex(kp.pub().data(), kp.pub().data() + 64, "04");
     h256 h(fromHex("0x68b5bae5fe19851624298fd1e9b4d788627ac27c13aad3240102ffd292a17911"));
+    cout << "$$$ pk :" << pubHex << endl;
     cout << "$$$ h.ref.data: "<<toHex(bytesConstRef{ h.ref().data(),32})<< endl;
+    
     std::shared_ptr<crypto::Signature> swResult = sm2Sign(kp,h);
     std::shared_ptr<crypto::Signature>  sdfResult = SDFSM2Sign(kp,h);	
+    
     cout<< "$$$ signature r: "<< sdfResult->r << " s:" << sdfResult->s << endl;
     cout<< "*** Check signature"<<endl <<endl;
     cout<< "&&&&&&&&&&&&&&&&&&&&&"<<endl;
     bool result1 = sm2Verify(kp.pub(),swResult,h);
     cout<< "*** sm2Verify swResult :"<< result1 <<endl <<endl;
+
     cout<< "&&&&&&&&&&&&&&&&&&&&&"<<endl;
     bool result2 = sm2Verify(kp.pub(),sdfResult,h);
     cout<<"*** call sm2Verify sdfResult： "<< result2 <<endl;
+
     cout<< "&&&&&&&&&&&&&&&&&&&&&"<<endl;
     bool result3 = SDFSM2Verify(kp.pub(),sdfResult,h);
     cout <<"*** call sdfVerify sdfResult: "<< result3 <<endl;
+
     cout<< "&&&&&&&&&&&&&&&&&&&&&"<<endl;
     bool result4 = SDFSM2Verify(kp.pub(),swResult,h);
     cout <<"*** call sdfVerify swResult: "<< result4 <<endl;
@@ -59,10 +71,7 @@ int main(int, const char* argv[])
     cout << "hsm sign, hsm verify, result: " << result3 << endl;
     cout << "soft sign, hsm verify, result: " << result3 << endl;
 
-    size_t loopRound = atoi(argv[1]);
-    initSMCrypto();
-    g_BCOSConfig.setUseSMCrypto(true);
-    KeyPair keyPair = KeyPair::create();
+    
     getchar();
     std::cout << "#### begin performance test" << std::endl;
 

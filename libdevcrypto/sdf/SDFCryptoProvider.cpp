@@ -18,7 +18,6 @@ SDFCryptoProvider::SDFCryptoProvider()
     {
         CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open device."
                           << LOG_KV("message", GetErrorMessage(deviceStatus));
-        
         throw deviceStatus;
     }
     SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &m_sessionHandle);
