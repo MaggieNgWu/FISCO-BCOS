@@ -95,7 +95,7 @@ private:
     ~SDFCryptoProvider();
     SDFCryptoProvider(const SDFCryptoProvider&);
     SDFCryptoProvider& operator=(const SDFCryptoProvider&);
-    std::mutex mtx; 
+    std::mutex mut;
 public:
     /**
      * Return the instance

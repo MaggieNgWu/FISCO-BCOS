@@ -3,6 +3,7 @@
 #include "libsdf/swsds.h"
 #include <cstring>
 #include <iostream>
+#include <libdevcore/Guards.h>
 
 using namespace std;
 
@@ -53,7 +54,7 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     unsigned int* signatureLen)
 {
 
-    mtx.lock();
+    Guard l(mut);
     switch (algorithm)
     {
     case SM2:
@@ -87,7 +88,7 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
 
 unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 {
-    mtx.lock();
+    Guard l(mut);
     switch (algorithm)
     {
     case SM2:
@@ -119,7 +120,7 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
     unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen)
 {
 
-    mtx.lock();
+    Guard l(mut);
     switch (algorithm)
     {
     case SM3:
@@ -157,7 +158,7 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
     unsigned int const zValueLen, char const* message, unsigned int const messageLen,
     unsigned char* digest, unsigned int* digestLen)
 {
-    mtx.lock();
+    Guard l(mut);
     switch (algorithm)
     {
     case SM3:
@@ -201,7 +202,7 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
 
 unsigned int SDFCryptoProvider::PrintDeviceInfo()
 {
-    mtx.lock();
+    Guard l(mut);
     DEVICEINFO stDeviceInfo;
     SGD_RV code = SDF_GetDeviceInfo(m_sessionHandle, &stDeviceInfo);
     if (code == SDR_OK)
@@ -221,7 +222,7 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
     const unsigned int signatureLen, bool* result)
 {
 
-    mtx.lock();
+    Guard l(mut);
     // cout << "@@Start verify signature" << endl;
     // cout << "@@Params are key.public: " << toHex(bytesConstRef{key.PublicKey(), 64})
     //      << " hash: " << toHex(bytesConstRef{digest, 32})
