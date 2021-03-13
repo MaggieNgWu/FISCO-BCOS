@@ -34,15 +34,16 @@ int main(int, const char* argv[])
 {
     std::cout << "#### begin function test" << std::endl;
     KeyPair kp = KeyPair::create();
+    
     h256 h(fromHex("0x68b5bae5fe19851624298fd1e9b4d788627ac27c13aad3240102ffd292a17911"));
-    cout << "$$$h.ref.data: "<<toHex(bytesConstRef{ h.ref().data(),32})<< endl;
+    cout << "$$$ h.ref.data: "<<toHex(bytesConstRef{ h.ref().data(),32})<< endl;
     std::shared_ptr<crypto::Signature> swResult = sm2Sign(kp,h);
     std::shared_ptr<crypto::Signature>  sdfResult = SDFSM2Sign(kp,h);	
-    cout<< "$$$$signature r: "<< sdfResult->r << " s:" << sdfResult->s << endl;
-    cout<< "*** Check signature"<<endl;
+    cout<< "$$$ signature r: "<< sdfResult->r << " s:" << sdfResult->s << endl;
+    cout<< "*** Check signature"<<endl <<endl;
     cout<< "&&&&&&&&&&&&&&&&&&&&&"<<endl;
     bool result1 = sm2Verify(kp.pub(),swResult,h);
-    cout<< "*** sm2Verify swResult :"<< result1 <<endl;
+    cout<< "*** sm2Verify swResult :"<< result1 <<endl <<endl;
     cout<< "&&&&&&&&&&&&&&&&&&&&&"<<endl;
     bool result2 = sm2Verify(kp.pub(),sdfResult,h);
     cout<<"*** call sm2Verify sdfResult： "<< result2 <<endl;

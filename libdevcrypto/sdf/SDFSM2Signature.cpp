@@ -130,20 +130,20 @@ bool dev::crypto::SDFSM2Verify(
     sm2Group = EC_GROUP_new_by_curve_name(NID_sm2);
     if ((pubPoint = EC_POINT_new(sm2Group)) == NULL)
     {
-        throw "[SM2::veify] ERROR of Verify EC_POINT_new";
+        throw "[SDFSM2::veify] ERROR of Verify EC_POINT_new";
     }
     if (!EC_POINT_hex2point(sm2Group, (const char*)pubHex.c_str(), pubPoint, NULL))
     {
-        throw "[SM2::veify] ERROR of Verify EC_POINT_hex2point";
+        throw "[SDFSM2::veify] ERROR of Verify EC_POINT_hex2point";
     }  
     sm2Key = EC_KEY_new_by_curve_name(NID_sm2);
     if (!EC_KEY_set_public_key(sm2Key, pubPoint))
     {
-        throw "[SM2::veify] ERROR of Verify EC_KEY_set_public_key";
+        throw "[SDFSM2::veify] ERROR of Verify EC_KEY_set_public_key";
     }
     if (!ECDSA_sm2_get_Z((const EC_KEY*)sm2Key, NULL, NULL, 0, zValue, &zValueLen))
     {
-        throw "[SM2::veify] Error Of Compute Z";
+        throw "[SDFSM2::veify] Error Of Compute Z";
     }
     //clock_t step2 = clock();
     //cout << "@@@@ SDFSM2Verify step 2 getz, duration:  " << step2 - step1 << endl;
