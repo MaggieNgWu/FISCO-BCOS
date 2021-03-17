@@ -896,8 +896,8 @@ void PBFTEngine::execBlock(Sealing& sealing, PrepareReq::Ptr _req, std::ostrings
         return;
     }
 
-    checkBlockValid(*(sealing.block));
-    checkTransactionsValid(sealing.block, _req);
+    //checkBlockValid(*(sealing.block));
+    //checkTransactionsValid(sealing.block, _req);
     auto check_time_cost = utcTime() - record_time;
     record_time = utcTime();
 
@@ -920,7 +920,8 @@ void PBFTEngine::execBlock(Sealing& sealing, PrepareReq::Ptr _req, std::ostrings
     m_txPool->verifyAndSetSenderForBlock(*sealing.block);
     auto verifyAndSetSender_time_cost = utcTime() - record_time;
     record_time = utcTime();
-    sealing.p_execContext = executeBlock(*sealing.block);
+    
+    //sealing.p_execContext = executeBlock(*sealing.block);
     auto exec_time_cost = utcTime() - record_time;
     PBFTENGINE_LOG(INFO)
         << LOG_DESC("execBlock") << LOG_KV("blkNum", sealing.block->header().number())
