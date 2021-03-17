@@ -85,20 +85,20 @@ private:
 class SessionPool
 {
 public:
-    SessionPool(size_t size, SGD_HANDLE* deviceHandle)
+    SessionPool(size_t size, SGD_HANDLE deviceHandle)
     {
         m_size = size;
         m_deviceHandle = deviceHandle;
         for (size_t n = 0; n < m_size; n++)
         {
             SGD_HANDLE sessionHandle;
-            SGD_RV sessionStatus = SDF_OpenSession(*m_deviceHandle, &sessionHandle);
+            SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
             if (sessionStatus != SDR_OK)
             {
                 CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed.";
                 throw sessionStatus;
             }
-            m_pool.push_back(&sessionHandle);
+            m_pool.push_back(sessionHandle);
         }
     };
     virtual ~SessionPool()
@@ -106,35 +106,32 @@ public:
         auto iter = m_pool.begin();
         while (iter != m_pool.end())
         {
-            SDF_CloseSession(*iter); 
-            delete *iter;
+            SDF_CloseSession(*iter);
             ++iter;
         }
         m_size = 0;
     };
-    SGD_HANDLE* GetSession()
+    SGD_HANDLE GetSession()
     {
-        SGD_HANDLE* session = NULL;
+        SGD_HANDLE session = NULL;
         if (m_size == 0)
         {
             SGD_HANDLE sessionHandle;
-            SGD_RV sessionStatus = SDF_OpenSession(*m_deviceHandle, &sessionHandle);
+            SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
             if (sessionStatus != SDR_OK)
             {
                 CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed.";
                 throw sessionStatus;
             }
-            m_pool.push_back(&sessionHandle);
+            m_pool.push_back(sessionHandle);
+            ++m_size;
         }
-        else
-        {
-            session = m_pool.front();
-            m_pool.pop_front();
-            --m_size;
-        }
+        session = m_pool.front();
+        m_pool.pop_front();
+        --m_size;
         return session;
     };
-    void ReturnSession(SGD_HANDLE* session)
+    void ReturnSession(SGD_HANDLE session)
     {
         m_pool.push_back(session);
         ++m_size;
@@ -142,9 +139,9 @@ public:
 
 
 private:
-    SGD_HANDLE* m_deviceHandle;
+    SGD_HANDLE m_deviceHandle;
     size_t m_size;
-    std::list<SGD_HANDLE*> m_pool;
+    std::list<SGD_HANDLE> m_pool;
 };
 
 /**
@@ -155,12 +152,12 @@ class SDFCryptoProvider
 {
 private:
     SGD_HANDLE m_deviceHandle;
-    SessionPool * m_sessionPool;
+    SessionPool* m_sessionPool;
     SDFCryptoProvider();
     ~SDFCryptoProvider();
     SDFCryptoProvider(const SDFCryptoProvider&);
     SDFCryptoProvider& operator=(const SDFCryptoProvider&);
-    //std::mutex mut;
+    // std::mutex mut;
 
 public:
     /**
@@ -218,5 +215,3 @@ public:
 
 }  // namespace crypto
 }  // namespace dev
-
-
