@@ -121,8 +121,7 @@ public:
             SGD_RV sessionStatus = SDF_OpenSession(*m_deviceHandle, &sessionHandle);
             if (sessionStatus != SDR_OK)
             {
-                CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed."
-                                  << LOG_KV("message", GetErrorMessage(deviceStatus));
+                CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed.";
                 throw sessionStatus;
             }
             m_pool.push_back(&sessionHandle);
