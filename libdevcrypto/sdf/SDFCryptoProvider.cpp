@@ -13,7 +13,6 @@ namespace crypto
 {
 SDFCryptoProvider::SDFCryptoProvider()
 {
-    // cout << "open device" << endl;
     SGD_RV deviceStatus = SDF_OpenDevice(&m_deviceHandle);
     if (deviceStatus != SDR_OK)
     {
@@ -21,14 +20,7 @@ SDFCryptoProvider::SDFCryptoProvider()
                           << LOG_KV("message", GetErrorMessage(deviceStatus));
         throw deviceStatus;
     }
-    m_sessionPool = new SessionPool(10, &m_deviceHandle);
-    // SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &m_sessionHandle);
-    // if (sessionStatus != SDR_OK)
-    // {
-    //     CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed."
-    //                       << LOG_KV("message", GetErrorMessage(deviceStatus));
-    //     throw sessionStatus;
-    // }
+    m_sessionPool = new SessionPool(10,m_deviceHandle);
     CRYPTO_LOG(INFO) << "[SDF::SDFCryptoProvider] Finish HSM open device.";
 }
 
@@ -51,24 +43,16 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int const digestLen, unsigned char* signature,
     unsigned int* signatureLen)
 {
-    // Guard l(mut);
     switch (algorithm)
     {
     case SM2:
     {
-        // clock_t start = clock();
-        // cout << "$$$ SDFCryptoProvider::Sign start "  << endl;
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        cout << "get session";
         ECCrefPrivateKey eccKey;
         eccKey.bits = 32 * 8;
         memcpy(eccKey.D, key.PrivateKey(), 32);
-        // clock_t step1 = clock();
-        // cout << "$$$ SDFCryptoProvider::Sign 1 prepare key, duration:" << step1-start << endl;
-        // unsigned char tmpData[64];
         SGD_RV signCode = SDF_ExternalSign_ECC(sessionHandle, SGD_SM2_1, &eccKey,
             (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
-        cout << "sign";
         if (signCode != SDR_OK)
         {
             CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] failed make sign."
@@ -76,13 +60,8 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
             m_sessionPool->ReturnSession(sessionHandle);
             return signCode;
         }
-        // clock_t step2 = clock();
-        // cout << "$$$ SDFCryptoProvider::Sign 2 finish call hsm. duration:" << step2-step1 <<
-        // endl; memcpy(signature, tmpData, 64);
         *signatureLen = 64;
-        cout << "finish";
         m_sessionPool->ReturnSession(sessionHandle);
-        cout << "return";
         return SDR_OK;
     }
     default:
@@ -92,17 +71,14 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
 
 unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 {
-    // Guard l(mut);
     switch (algorithm)
     {
     case SM2:
     {
-        // key
         ECCrefPublicKey pk;
         ECCrefPrivateKey sk;
         SGD_UINT32 keyLen = 256;
 
-        // call generate key
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
         SGD_RV result = SDF_GenerateKeyPair_ECC(sessionHandle, SGD_SM2_3, keyLen, &pk, &sk);
         if (result != SDR_OK)
@@ -126,7 +102,6 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* message,
     unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen)
 {
-    // Guard l(mut);
     switch (algorithm)
     {
     case SM3:
@@ -169,7 +144,6 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
     unsigned int const zValueLen, char const* message, unsigned int const messageLen,
     unsigned char* digest, unsigned int* digestLen)
 {
-    // Guard l(mut);
     switch (algorithm)
     {
     case SM3:
@@ -219,7 +193,6 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
 
 unsigned int SDFCryptoProvider::PrintDeviceInfo()
 {
-    // Guard l(mut);
     SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
     DEVICEINFO stDeviceInfo;
     SGD_RV code = SDF_GetDeviceInfo(sessionHandle, &stDeviceInfo);
@@ -240,12 +213,6 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int const digestLen, unsigned char const* signature,
     const unsigned int signatureLen, bool* result)
 {
-    // Guard l(mut);
-    // cout << "@@Start verify signature" << endl;
-    // cout << "@@Params are key.public: " << toHex(bytesConstRef{key.PublicKey(), 64})
-    //      << " hash: " << toHex(bytesConstRef{digest, 32})
-    //      << " signature:" << toHex(bytesConstRef{signature, 64}) << "digestLen:" << digestLen
-    //      << " signatureLen:" << signatureLen << endl;
     switch (algorithm)
     {
     case SM2:

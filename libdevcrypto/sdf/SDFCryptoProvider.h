@@ -53,7 +53,6 @@ public:
     };
     Key(unsigned char* privateKey, unsigned char* publicKey)
     {
-        // cout << "init a key" << endl;
         m_privateKey = privateKey;
         m_publicKey = publicKey;
     };
