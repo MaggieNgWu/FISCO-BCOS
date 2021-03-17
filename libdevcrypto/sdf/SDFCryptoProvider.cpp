@@ -216,7 +216,8 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
 unsigned int SDFCryptoProvider::PrintDeviceInfo()
 {
     // Guard l(mut);
-    SGD_HANDLE* sessionHandle = m_sessionPool->GetSession() DEVICEINFO stDeviceInfo;
+    SGD_HANDLE* sessionHandle = m_sessionPool->GetSession();
+    DEVICEINFO stDeviceInfo;
     SGD_RV code = SDF_GetDeviceInfo(*sessionHandle, &stDeviceInfo);
     if (code == SDR_OK)
     {
@@ -249,7 +250,8 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         {
             return SDR_NOTSUPPORT;
         }
-        SGD_HANDLE* sessionHandle = m_sessionPool->GetSession() ECCrefPublicKey eccKey;
+        SGD_HANDLE* sessionHandle = m_sessionPool->GetSession();
+        ECCrefPublicKey eccKey;
         eccKey.bits = 32 * 8;
         memcpy(eccKey.x, key.PublicKey(), 32);
         memcpy(eccKey.y, key.PublicKey() + 32, 32);
