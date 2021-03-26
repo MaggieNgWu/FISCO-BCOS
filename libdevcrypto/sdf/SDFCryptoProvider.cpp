@@ -1,7 +1,5 @@
 #include "SDFCryptoProvider.h"
-#include "libdevcore/CommonData.h"
 #include "libsdf/swsds.h"
-#include <libdevcore/Guards.h>
 #include <cstring>
 #include <iostream>
 
@@ -16,12 +14,9 @@ SDFCryptoProvider::SDFCryptoProvider()
     SGD_RV deviceStatus = SDF_OpenDevice(&m_deviceHandle);
     if (deviceStatus != SDR_OK)
     {
-        CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open device."
-                          << LOG_KV("message", GetErrorMessage(deviceStatus));
         throw deviceStatus;
     }
-    m_sessionPool = new SessionPool(10,m_deviceHandle);
-    CRYPTO_LOG(INFO) << "[SDF::SDFCryptoProvider] Finish HSM open device.";
+    m_sessionPool = new SessionPool(10, m_deviceHandle);
 }
 
 SDFCryptoProvider::~SDFCryptoProvider()
@@ -55,8 +50,6 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
             (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
         if (signCode != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] failed make sign."
-                              << LOG_KV("message", GetErrorMessage(signCode));
             m_sessionPool->ReturnSession(sessionHandle);
             return signCode;
         }
@@ -99,7 +92,7 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
     }
 }
 
-unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* message,
+unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, char const* message,
     unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen)
 {
     switch (algorithm)
@@ -110,8 +103,6 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         SGD_RV code = SDF_HashInit(sessionHandle, SGD_SM3, NULL, NULL, 0);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Hash.SDF_HashInit fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
@@ -119,8 +110,6 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         code = SDF_HashUpdate(sessionHandle, (SGD_UCHAR*)message, messageLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Hash.SDF_HashUpdate fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
@@ -128,8 +117,6 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         code = SDF_HashFinal(sessionHandle, (SGD_UCHAR*)digest, digestLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Hash.SDF_HashFinal fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
@@ -140,7 +127,7 @@ unsigned int SDFCryptoProvider::Hash(AlgorithmType algorithm, char const* messag
         return SDR_ALGNOTSUPPORT;
     }
 }
-unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* zValue,
+unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm, char const* zValue,
     unsigned int const zValueLen, char const* message, unsigned int const messageLen,
     unsigned char* digest, unsigned int* digestLen)
 {
@@ -152,16 +139,12 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
         SGD_RV code = SDF_HashInit(sessionHandle, SGD_SM3, NULL, NULL, 0);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashInit fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
         code = SDF_HashUpdate(sessionHandle, (SGD_UCHAR*)zValue, zValueLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashUpdate fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
@@ -169,8 +152,6 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
         code = SDF_HashUpdate(sessionHandle, (SGD_UCHAR*)message, messageLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashUpdate fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
@@ -178,8 +159,6 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
         code = SDF_HashFinal(sessionHandle, (SGD_UCHAR*)digest, digestLen);
         if (code != SDR_OK)
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] HashWithZ.SDF_HashFinal fialed."
-                              << LOG_KV("message", GetErrorMessage(code));
             m_sessionPool->ReturnSession(sessionHandle);
             return code;
         }
@@ -191,24 +170,6 @@ unsigned int SDFCryptoProvider::HashWithZ(AlgorithmType algorithm, char const* z
     }
 }
 
-unsigned int SDFCryptoProvider::PrintDeviceInfo()
-{
-    SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-    DEVICEINFO stDeviceInfo;
-    SGD_RV code = SDF_GetDeviceInfo(sessionHandle, &stDeviceInfo);
-    if (code == SDR_OK)
-    {
-        CRYPTO_LOG(INFO) << "[SDF::SDFCryptoProvider] Get Device Info."
-                         << LOG_KV("device name", stDeviceInfo.DeviceName);
-    }
-    else
-    {
-        CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] Get Device Info."
-                          << LOG_KV("error", GetErrorMessage(code));
-    }
-    m_sessionPool->ReturnSession(sessionHandle);
-    return code;
-}
 unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int const digestLen, unsigned char const* signature,
     const unsigned int signatureLen, bool* result)
@@ -237,8 +198,6 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         }
         else
         {
-            CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] verify ecc signature."
-                              << LOG_KV("result", GetErrorMessage(code));
             *result = false;
         }
         m_sessionPool->ReturnSession(sessionHandle);

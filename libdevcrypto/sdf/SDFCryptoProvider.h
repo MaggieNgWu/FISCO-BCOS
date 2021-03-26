@@ -19,13 +19,11 @@
  * @date 2021-02-01
  */
 #pragma once
-#include "libdevcrypto/Common.h"
 #include "libsdf/swsds.h"
 #include <cstring>
 #include <iostream>
-#include <mutex>
+#include <list>
 #include <string>
-#define CRYPTO_LOG(LEVEL) LOG(LEVEL) << "[CRYPTO] "
 
 using namespace std;
 namespace dev
@@ -46,11 +44,6 @@ public:
     unsigned char* PublicKey() const { return m_publicKey; }
     unsigned char* PrivateKey() const { return m_privateKey; }
     Key(void){};
-    Key(KeyPair const& keyPair)
-    {
-        m_privateKey = (unsigned char*)keyPair.secret().ref().data();
-        m_publicKey = (unsigned char*)keyPair.pub().ref().data();
-    };
     Key(unsigned char* privateKey, unsigned char* publicKey)
     {
         m_privateKey = privateKey;
@@ -94,7 +87,6 @@ public:
             SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
             if (sessionStatus != SDR_OK)
             {
-                CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed.";
                 throw sessionStatus;
             }
             m_pool.push_back(sessionHandle);
@@ -119,7 +111,6 @@ public:
             SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
             if (sessionStatus != SDR_OK)
             {
-                CRYPTO_LOG(ERROR) << "[SDF::SDFCryptoProvider] ERROR of open session failed.";
                 throw sessionStatus;
             }
             m_pool.push_back(sessionHandle);
@@ -164,7 +155,6 @@ public:
      */
     static SDFCryptoProvider& GetInstance();
 
-    unsigned int PrintDeviceInfo();
     /**
      * Generate key
      * Return error code
@@ -187,8 +177,8 @@ public:
     /**
      * Make hash
      */
-    unsigned int Hash(AlgorithmType algorithm, char const* message, unsigned int const messageLen,
-        unsigned char* digest, unsigned int* digestLen);
+    unsigned int Hash(Key* key, AlgorithmType algorithm, char const* message,
+        unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen);
 
     /**
      * Encrypt
@@ -205,7 +195,7 @@ public:
     /**
      * Make sm3 hash with z value
      */
-    unsigned int HashWithZ(AlgorithmType algorithm, char const* zValue,
+    unsigned int HashWithZ(Key* key, AlgorithmType algorithm, char const* zValue,
         unsigned int const zValueLen, char const* message, unsigned int const messageLen,
         unsigned char* digest, unsigned int* digestLen);
 

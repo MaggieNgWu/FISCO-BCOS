@@ -27,13 +27,15 @@ using namespace std;
 using namespace dev;
 using namespace dev::crypto;
 
-unsigned int dev::crypto::SDFSM3(bytesConstRef _input, bytesRef o_output){
+unsigned int dev::crypto::SDFSM3(bytesConstRef _input, bytesRef o_output)
+{
     // FIXME: What with unaligned memory?
     if (o_output.size() != 32)
         return false;
     // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     unsigned int uiHashResultLen;
-    unsigned int code = provider.Hash(SM3,(const char*)_input.data(),_input.size(),(unsigned char*)o_output.data(), &uiHashResultLen);
+    unsigned int code = provider.Hash(nullptr, SM3, (const char*)_input.data(), _input.size(),
+        (unsigned char*)o_output.data(), &uiHashResultLen);
     return code;
 }

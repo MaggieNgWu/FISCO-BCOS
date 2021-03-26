@@ -21,6 +21,7 @@
 #include "SDFSM2Signature.h"
 #include "SDFCryptoProvider.h"
 #include "libdevcore/Common.h"
+#include "libdevcore/FixedHash.h"
 #include "libdevcrypto/Common.h"
 #include "libdevcrypto/SM2Signature.h"
 #include "libdevcrypto/sm2/sm2.h"
@@ -33,17 +34,13 @@ using namespace dev::crypto;
 std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     KeyPair const& _keyPair, const h256& _hash)
 {
-    // clock_t start = clock();
-    // cout << "@@@@ SDFSM2Sign start " << endl;
-    // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     unsigned char signature[64];
     unsigned int signLen;
-    Key key(_keyPair);
+    Key key((unsigned char*)_keyPair.secret().ref().data(),
+        (unsigned char*)_keyPair.pub().ref().data());
     h256 privk((byte const*)key.PrivateKey(),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
-    // clock_t step1 = clock();
-    // cout << "@@@@ SDFSM2Sign step 1 prepare key and HSM , duration: " << step1 - start << endl;
 
     // According to the SM2 standard
     // step 1 : calculate M' = Za || M
@@ -60,20 +57,18 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
         throw "[SM2::sign] malloc BigNumber failed";
     }
     string pri = toHex(bytesConstRef{_keyPair.secret().data(), 32});
-    BN_hex2bn(&res, (const char *)pri.c_str());
+    BN_hex2bn(&res, (const char*)pri.c_str());
     EC_KEY* sm2Key = EC_KEY_new_by_curve_name(NID_sm2);
     EC_KEY_set_private_key(sm2Key, res);
     if (!SM2::sm2GetZ(pri, (const EC_KEY*)sm2Key, zValue, zValueLen))
     {
         throw "Error Of Compute Z";
     }
-    //clock_t step2 = clock();
-    //cout << "@@@@ SDFSM2Sign step 2 getz , duration: " << step2 - step1 << endl;
-    
+
     // step 2 : e = H(M')
     unsigned char hashResult[SM3_DIGEST_LENGTH];
     unsigned int uiHashResultLen;
-    unsigned int code = provider.HashWithZ(SM3, (const char*)zValue, zValueLen,
+    unsigned int code = provider.HashWithZ(nullptr, SM3, (const char*)zValue, zValueLen,
         (const char*)_hash.data(), SM3_DIGEST_LENGTH, (unsigned char*)hashResult, &uiHashResultLen);
     if (code != SDR_OK)
     {
@@ -81,44 +76,28 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     }
 
     // step 3 : signature = Sign(e)
-    //clock_t step3 = clock();
-    //cout << "@@@@ SDFSM2Sign step 3 SM3(Z|M) , duration: " << step3 - step2 << endl;
     code = provider.Sign(key, SM2, (const unsigned char*)hashResult, 32, signature, &signLen);
     if (code != SDR_OK)
     {
         throw provider.GetErrorMessage(code);
     }
-    // clock_t step4 = clock();
-    // cout << "@@@@ SDFSM2Sign step 4 Sign , duration: " << step4 - step3 << endl;
     h256 r((byte const*)signature, FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
     h256 s((byte const*)(signature + 32),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
-    // clock_t step5 = clock();
-    // cout << "@@@@ SDFSM2Sign step 5 finish , duration: " << step5 - step4 << endl;
     return make_shared<SM2Signature>(r, s, _keyPair.pub());
 }
 
 bool dev::crypto::SDFSM2Verify(
     h512 const& _pubKey, std::shared_ptr<crypto::Signature> _sig, const h256& _hash)
 {
-    //clock_t start = clock();
-    //cout << "@@@@ SDFSM2Verify start " << start << endl;
     // get provider
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
-    
+
     // parse input
-    // cout << "pub key: " << toHex(bytesConstRef{_pubKey.ref().data(), 64}) << endl;
     char emptyPrivateKey[32];
     Key key((unsigned char*)emptyPrivateKey, (unsigned char*)_pubKey.ref().data());
     bool verifyResult;
-    
-    //clock_t step1 = clock();
-    //cout << "@@@@ SDFSM2Verify step 1 prepare key and HSM , duration: " << step1 - start << endl;
-    
-    
-    // cout << "key.pub " << toHex(bytesConstRef{key.PublicKey(), 64}) << endl;
-    // cout << "sig:" << toHex(bytesConstRef{_sig->asBytes().data(), 64}) << endl;
-    // cout << "hash.ref.data:" << toHex(bytesConstRef{_hash.ref().data(), 32}) << endl;
+
 
     // Get Z
     EC_KEY* sm2Key = NULL;
@@ -135,7 +114,7 @@ bool dev::crypto::SDFSM2Verify(
     if (!EC_POINT_hex2point(sm2Group, (const char*)pubHex.c_str(), pubPoint, NULL))
     {
         throw "[SDFSM2::verify] ERROR of Verify EC_POINT_hex2point";
-    }  
+    }
     sm2Key = EC_KEY_new_by_curve_name(NID_sm2);
     if (!EC_KEY_set_public_key(sm2Key, pubPoint))
     {
@@ -145,27 +124,19 @@ bool dev::crypto::SDFSM2Verify(
     {
         throw "[SDFSM2::verify] Error Of Compute Z";
     }
-    //clock_t step2 = clock();
-    //cout << "@@@@ SDFSM2Verify step 2 getz, duration:  " << step2 - step1 << endl;
-    
+
     unsigned char hashResult[SM3_DIGEST_LENGTH];
     unsigned int uiHashResultLen;
-    unsigned int code = provider.HashWithZ(SM3, (const char*)zValue, zValueLen,
+    unsigned int code = provider.HashWithZ(nullptr, SM3, (const char*)zValue, zValueLen,
         (const char*)_hash.data(), SM3_DIGEST_LENGTH, (unsigned char*)hashResult, &uiHashResultLen);
     if (code != SDR_OK)
     {
         throw provider.GetErrorMessage(code);
     }
 
-    //clock_t step3 = clock();
-    //cout << "@@@@ SDFSM2Verify step 3 SM3(Z|M), duration: " << step3 - step2 << endl;
-    
-    // cout << "hash(hash):" << toHex(bytesConstRef{(const unsigned char*)hashResult, 32}) << endl;
     code = provider.Verify(
         key, SM2, (const unsigned char*)hashResult, 32, _sig->asBytes().data(), 64, &verifyResult);
-    //clock_t step4 = clock();
-    //cout << "@@@@ SDFSM2Verify step 4 Verify finish, duration: " << step4 - step3 << endl;
-    // cout << _pubKey << _sig->r << _hash<<endl;
+
     if (code == SDR_OK)
     {
         return true;
