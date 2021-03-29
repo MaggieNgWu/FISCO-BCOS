@@ -21,7 +21,6 @@
 
 #include "SDFSM3Hash.h"
 #include "SDFCryptoProvider.h"
-#include "libsdf/swsds.h"
 #include <libdevcore/FixedHash.h>
 using namespace std;
 using namespace dev;

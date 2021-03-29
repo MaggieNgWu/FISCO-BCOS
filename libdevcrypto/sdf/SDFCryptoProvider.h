@@ -77,11 +77,11 @@ private:
 class SessionPool
 {
 public:
-    SessionPool(size_t size, SGD_HANDLE deviceHandle)
+    SessionPool(int size, SGD_HANDLE deviceHandle)
     {
         m_size = size;
         m_deviceHandle = deviceHandle;
-        for (size_t n = 0; n < m_size; n++)
+        for (int n = 0; n < m_size; n++)
         {
             SGD_HANDLE sessionHandle;
             SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
