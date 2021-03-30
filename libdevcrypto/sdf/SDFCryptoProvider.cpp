@@ -79,11 +79,22 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
-        std::basic_string<unsigned char> pk_x = pk.x;
-        std::basic_string<unsigned char> pk_y = pk.y;
-        std::basic_string<unsigned char> pk_xy = pk_x + pk_y;
-        key->setPrivateKey(sk.D, sk.bits / 8);
-        key->setPublicKey((unsigned char*)pk_xy.c_str(), pk.bits / 4);
+        ECCrefPublicKey pk;
+        ECCrefPrivateKey sk;
+        SGD_UINT32 keyLen = 256;
+
+        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
+        SGD_RV result = SDF_GenerateKeyPair_ECC(sessionHandle, SGD_SM2_3, keyLen, &pk, &sk);
+        if (result != SDR_OK)
+        {
+            m_sessionPool->ReturnSession(sessionHandle);
+            return result;
+        }
+        unsigned char pk_xy[64];
+        memcpy(pk_xy, pk.x, 32);
+        memcpy(pk_xy + 32, pk.y, 32);
+        key->setPrivateKey(sk.D, 32);
+        key->setPublicKey(pk_xy, 64);
         m_sessionPool->ReturnSession(sessionHandle);
         return SDR_OK;
     }
