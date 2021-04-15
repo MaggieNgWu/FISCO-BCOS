@@ -149,7 +149,12 @@ void dev::initializer::initGlobalConfig(const boost::property_tree::ptree& _pt)
         g_BCOSConfig.setUseSMCrypto(useSMCrypto);
         if (useSMCrypto)
         {
-            crypto::initSMCrypto();
+            bool useHSM = _pt.get<bool>("hsm.enable", false);
+            if (useHSM){
+                crypto::initHsmSMCrypto();
+            }else{
+                crypto::initSMCrypto();
+            } 
         }
     }
     else

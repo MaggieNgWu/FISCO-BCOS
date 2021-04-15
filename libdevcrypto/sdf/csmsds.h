@@ -1,9 +1,3 @@
-/*
-* File: swsds.h
-* Copyright (c) SWXA 2009
-*
-* v1.00.0001  2009.07.15   yaahao     
-*/
 
 #ifndef _SW_SDS_H_
 #define _SW_SDS_H_ 1
@@ -237,6 +231,7 @@ typedef struct ECCSignature_st
 #define SWR_SEM_TIMEOUT			(SWR_BASE + 0x00000200)	/*超时错误*/
 #define SWR_NO_AVAILABLE_HSM	(SWR_BASE + 0x00000201)	/*没有可用的加密机*/
 #define SWR_NO_AVAILABLE_CSM	(SWR_BASE + 0x00000202)	/*加密机内没有可用的加密模块*/
+
 #define SWR_CONFIG_ERR			(SWR_BASE + 0x00000301)	/*配置文件错误*/
 
 /*============================================================*/

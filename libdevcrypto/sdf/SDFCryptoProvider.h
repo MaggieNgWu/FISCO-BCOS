@@ -19,7 +19,7 @@
  * @date 2021-02-01
  */
 #pragma once
-#include "libsdf/swsds.h"
+#include "csmsds.h"
 #include <cstring>
 #include <iostream>
 #include <list>
@@ -41,37 +41,45 @@ enum AlgorithmType : uint32_t
 class Key
 {
 public:
-    unsigned char* PublicKey() const { return m_publicKey; }
-    unsigned char* PrivateKey() const { return m_privateKey; }
+    unsigned char * PublicKey() const { return m_publicKey; }
+    unsigned char * PrivateKey() const { return m_privateKey; }
+    int PublicKeyLen() const { return m_publicKeyLen; }
+    int PrivateKeyLen() const { return m_privateKeyLen; }
     Key(void){};
-    Key(unsigned char* privateKey, unsigned char* publicKey)
+    Key(unsigned char* privateKey,int privateKeyLen, unsigned char* publicKey, int publicKeyLen)
     {
         m_privateKey = privateKey;
+        m_privateKeyLen = privateKeyLen;
         m_publicKey = publicKey;
+        m_publicKeyLen = publicKeyLen;
     };
-    Key(const unsigned int keyIndex, std::string& password)
+    Key(const unsigned int keyIndex, char *& password)
     {
         m_keyIndex = keyIndex;
         m_keyPassword = password;
     };
     unsigned int Identifier() { return m_keyIndex; };
-    std::string Password() { return m_keyPassword; };
+    char * Password() { return m_keyPassword; };
     void setPrivateKey(unsigned char* privateKey, unsigned int len)
     {
         m_privateKey = (unsigned char*)malloc(len * sizeof(char));
-        strncpy((char*)m_privateKey, (char*)privateKey, len);
+        memcpy(m_privateKey, privateKey, len);
+        m_privateKeyLen = len;
     };
     void setPublicKey(unsigned char* publicKey, unsigned int len)
     {
         m_publicKey = (unsigned char*)malloc(len * sizeof(char));
-        strncpy((char*)m_publicKey, (char*)publicKey, len);
+        memcpy(m_publicKey, publicKey, len);
+        m_publicKeyLen = len;
     };
 
 private:
     unsigned int m_keyIndex;
-    std::string m_keyPassword;
-    unsigned char* m_privateKey;
-    unsigned char* m_publicKey;
+    char * m_keyPassword;
+    unsigned char * m_privateKey;
+    unsigned char * m_publicKey;
+    int m_privateKeyLen;
+    int m_publicKeyLen;
 };
 
 class SessionPool

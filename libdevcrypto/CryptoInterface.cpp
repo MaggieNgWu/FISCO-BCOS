@@ -73,8 +73,20 @@ size_t dev::crypto::signatureLength()
 
 void dev::crypto::initSMCrypto()
 {
-    //EmptyHash = sm3(bytesConstRef());
-    //EmptyTrie = sm3(rlp(""));
+    EmptyHash = sm3(bytesConstRef());
+    EmptyTrie = sm3(rlp(""));
+    SignatureFromRLP = sm2SignatureFromRLP;
+    SignatureFromBytes = sm2SignatureFromBytes;
+    dev::crypto::SymmetricEncrypt = static_cast<std::string (*)(const unsigned char*, size_t,
+        const unsigned char*, size_t, const unsigned char*)>(dev::crypto::sm4Encrypt);
+    dev::crypto::SymmetricDecrypt = static_cast<std::string (*)(const unsigned char*, size_t,
+        const unsigned char*, size_t, const unsigned char*)>(dev::crypto::sm4Decrypt);
+    Sign = sm2Sign;
+    Verify = sm2Verify;
+    Recover = sm2Recover;
+}
+
+void dev::crypto::initHsmSMCrypto(){
     EmptyHash = SDFSM3(bytesConstRef());
     EmptyTrie = SDFSM3(rlp(""));
     SignatureFromRLP = sm2SignatureFromRLP;
@@ -86,9 +98,6 @@ void dev::crypto::initSMCrypto()
     Sign = SDFSM2Sign;
     Verify = SDFSM2Verify;
     Recover = SDFSM2Recover;
-    //Sign = sm2Sign;
-    //Verify = sm2Verify;
-    //Recover = sm2Recover;
 }
 
 void dev::crypto::initCrypto()

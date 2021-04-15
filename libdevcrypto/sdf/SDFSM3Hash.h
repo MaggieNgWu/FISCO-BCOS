@@ -24,7 +24,7 @@
 #include <libdevcore/vector_ref.h>
 #include <string>
 #include "SDFCryptoProvider.h"
-#include "libsdf/swsds.h"
+#include "csmsds.h"
 
 namespace dev
 {

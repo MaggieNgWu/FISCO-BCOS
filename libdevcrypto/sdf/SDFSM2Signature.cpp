@@ -25,7 +25,7 @@
 #include "libdevcrypto/Common.h"
 #include "libdevcrypto/SM2Signature.h"
 #include "libdevcrypto/sm2/sm2.h"
-#include "libsdf/swsds.h"
+#include "csmsds.h"
 
 using namespace std;
 using namespace dev;
@@ -37,8 +37,9 @@ std::shared_ptr<crypto::Signature> dev::crypto::SDFSM2Sign(
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     unsigned char signature[64];
     unsigned int signLen;
-    Key key((unsigned char*)_keyPair.secret().ref().data(),
-        (unsigned char*)_keyPair.pub().ref().data());
+    Key key = Key();
+    key.setPrivateKey((unsigned char*)_keyPair.secret().ref().data(),32);
+    key.setPublicKey((unsigned char*)_keyPair.pub().ref().data(),64);
     h256 privk((byte const*)key.PrivateKey(),
         FixedHash<32>::ConstructFromPointerType::ConstructFromPointer);
 
@@ -95,7 +96,8 @@ bool dev::crypto::SDFSM2Verify(
 
     // parse input
     char emptyPrivateKey[32];
-    Key key((unsigned char*)emptyPrivateKey, (unsigned char*)_pubKey.ref().data());
+    Key key = Key();
+    key.setPublicKey((unsigned char*)_pubKey.ref().data(),64);
     bool verifyResult;
 
 

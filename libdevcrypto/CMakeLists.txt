@@ -9,4 +9,7 @@ link_directories(sdf/libsdf)
 
 eth_use(devcrypto OPTIONAL OpenSSL)
 target_link_libraries(devcrypto PRIVATE Secp256k1 Cryptopp libff::ff)
-target_link_libraries(devcrypto PUBLIC devcore swsds)
+target_link_libraries(devcrypto PUBLIC devcore)
+if (SDF)
+    target_link_libraries(devcrypto PUBLIC csmsds.so)
+endif()
