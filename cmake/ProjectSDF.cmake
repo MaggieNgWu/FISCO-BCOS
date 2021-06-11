@@ -32,7 +32,7 @@ ExternalProject_Add(libsdf
     DOWNLOAD_NAME sdf.zip
     DOWNLOAD_NO_PROGRESS 1
     URL https://github.com/WeBankBlockchain/hsm-crypto/archive/refs/heads/GMT0018.zip 
-    URL_HASH SHA256=ac91937f8a83aeddaca33892eeaa24b26b48128b332bd83260c7380250e72b6a
+    URL_HASH SHA256=3975760534099e2a2e22d1e28834968d915881585957975669ff44562de19741
     BUILD_IN_SOURCE 1
     LOG_CONFIGURE 1
     LOG_BUILD 1
