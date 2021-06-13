@@ -393,7 +393,6 @@ ConfigResult initGmConfig(const boost::property_tree::ptree& pt)
     bool use_hsm_key = pt.get<bool>("chain.sm_crypto_hsm_key", false);
     std::string keyId = pt.get<std::string>(sectionName + ".key_id", "");
     std::string enckeyId = pt.get<std::string>(sectionName + ".enckey_id", "");
-
     std::shared_ptr<boost::asio::ssl::context> sslContext =
         std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::gmtls);
 
@@ -407,7 +406,8 @@ ConfigResult initGmConfig(const boost::property_tree::ptree& pt)
         boost::asio::const_buffer keyBufferEnc(encKeyName.c_str(), encKeyName.length());
         INITIALIZER_LOG(INFO) << LOG_BADGE("SecureInitializerGM use_hsm_key")
                               << LOG_KV("keyId", keyId) << LOG_KV("enckeyId", enckeyId);
-
+        cout << "keyName=" <<keyName<<endl;
+        cout << "encKeyName=" <<encKeyName<<endl;
         keyPair.setKeyIndex(std::stoi(keyId.c_str()));
         INITIALIZER_LOG(INFO) << LOG_BADGE("SecureInitializerGM")
                               << LOG_KV("keyPair.keyId", keyPair.keyIndex());

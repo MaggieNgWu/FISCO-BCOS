@@ -31,8 +31,8 @@ ExternalProject_Add(libsdf
     PREFIX ${CMAKE_SOURCE_DIR}/deps
     DOWNLOAD_NAME sdf.zip
     DOWNLOAD_NO_PROGRESS 1
-    URL https://github.com/WeBankBlockchain/hsm-crypto/archive/refs/heads/GMT0018.zip 
-    URL_HASH SHA256=3975760534099e2a2e22d1e28834968d915881585957975669ff44562de19741
+    URL https://github.com/WeBankBlockchain/hsm-crypto/archive/refs/heads/GMT0018.zip
+    URL_HASH SHA256=cd4d97ac9ea12e34ae45584e964549d4b806f47bec17863a054efb26b009a275
     BUILD_IN_SOURCE 1
     LOG_CONFIGURE 1
     LOG_BUILD 1

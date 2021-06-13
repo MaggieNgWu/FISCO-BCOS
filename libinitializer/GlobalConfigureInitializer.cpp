@@ -177,6 +177,7 @@ void dev::initializer::initGlobalConfig(const boost::property_tree::ptree& _pt)
             if (dev::stringCmpIgnoreCase(crypto_provider, "hsm") == 0)
             {
 #ifdef FISCO_SDF
+#define USE_SDF
                 INITIALIZER_LOG(INFO) << "Use hardware secure module "<<endl;
                 crypto::initHsmSMCrypto();
 #else

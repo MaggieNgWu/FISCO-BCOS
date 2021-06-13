@@ -33,7 +33,7 @@ conf_path="conf"
 bin_path=
 make_tar=
 binary_log="false"
-sm_crypto_channel="false"
+sm_crypto_channel="true"
 log_level="info"
 logfile=${PWD}/build.log
 listen_ip="127.0.0.1"
@@ -347,7 +347,8 @@ gen_chain_cert_gm() {
     chaindir=$path
     mkdir -p $chaindir
     LOG_INFO "sm2_${ca_key_index}"
-    env
+    export OPENSSL_CONF="${HOME}"/.fisco/swssl/ssl/swssl.cnf
+    export LD_LIBRARY_PATH="${HOME}"/.fisco/swssl/lib
     if [ "${ca_key_type}" == "internalKey" ]; then
         $SWSSL_CMD req -engine sdf -new -x509 -batch -sm3 -days "${days}" -key "sm2_${ca_key_index}" -keyform engine -out "$chaindir/gmca.crt" -subj "/CN=${name}/O=fisco-bcos/OU=chain" 2> /dev/null
     else
@@ -369,7 +370,6 @@ gen_agency_cert_gm() {
     agencydir=$agencypath
     dir_must_not_exists "$agencydir"
     mkdir -p $agencydir
-
     if [ "${agencyKeyType}" == "internalKey" ]; then
         local agencyKeyIndex="${4}"
         $SWSSL_CMD req -new -batch -sm3 -engine sdf -key "sm2_${agencyKeyIndex}" -keyform engine -subj "/CN=${name}/O=fisco-bcos/OU=agency" -config "$chain/gmcert.cnf" -out "$agencydir/gmagency.csr" 2> /dev/null
@@ -378,7 +378,7 @@ gen_agency_cert_gm() {
         $SWSSL_CMD req -new -subj "/CN=${name}/O=fisco-bcos/OU=agency" -key "$agencydir/gmagency.key" -config "$chain/gmcert.cnf" -out "$agencydir/gmagency.csr" 2> /dev/null
     fi
     if [ "${ca_key_type}" == "internalKey" ]; then
-        $SWSSL_CMD x509 -engine sdf -req -CAcreateserial -extfile "${HOME}"/.fisco/swssl/ssl/swssl.cnf -extensions v3_req -days 3650 -in "$agencydir/gmagency.csr" -out "$agencydir/gmagency.crt" -CA "$chain/gmca.crt" -CAkey "sm2_${ca_key_index}" -CAkeyform engine 2> /dev/null
+        $SWSSL_CMD x509 -engine sdf -req -CAcreateserial -extfile "${HOME}"/.fisco/swssl/ssl/swssl.cnf  -extensions v3_req -days 3650 -in "$agencydir/gmagency.csr" -out "$agencydir/gmagency.crt" -CA "$chain/gmca.crt" -CAkey "sm2_${ca_key_index}" -CAkeyform engine 2> /dev/null
     else
         file_must_exists "$chain/gmca.key"
         $SWSSL_CMD x509 -sm3 -req -CA "$chain/gmca.crt" -CAkey "$chain/gmca.key" -days 3650 -CAcreateserial -in "$agencydir/gmagency.csr" -out "$agencydir/gmagency.crt" -extfile "$chain/gmcert.cnf" -extensions v3_agency_root 2> /dev/null
@@ -393,12 +393,15 @@ gen_node_cert_with_extensions_gm() {
     name="$3"
     type="$4"
     extensions="$5"
-    keyInex="$6"
+    keyType="$6"
+    keyIndex="$7"
     # add key index support
-    $SWSSL_CMD genpkey -paramfile "$capath/gmsm2.param" -out "$certpath/gm${type}.key" 2> /dev/null
-    if [ -n "${keyIndex}" ];then
-        $SWSSL_CMD req -engine sdf -batch -sm3 -new -subj "/CN=$name/O=fisco-bcos/OU=${type}" -key "sm2_${keyIndex}" -keyform engine -config "$capath/gmcert.cnf" -out "$certpath/gm${type}.csr" 2> /dev/nul
+    if [ "${keyType}" == "internalKey" ];then
+        cp ../swsds.ini ./
+        $SWSSL_CMD req -engine sdf -batch -sm3 -new -subj "/CN=$name/O=fisco-bcos/OU=${type}" -key "sm2_${keyIndex}" -keyform engine -config "$capath/gmcert.cnf" -out "$certpath/gm${type}.csr" 2> /dev/null
+        rm swsds.ini
     else
+        $SWSSL_CMD genpkey -paramfile "$capath/gmsm2.param" -out "$certpath/gm${type}.key" 2> /dev/null
         $SWSSL_CMD req -new -subj "/CN=$name/O=fisco-bcos/OU=${type}" -key "$certpath/gm${type}.key" -config "$capath/gmcert.cnf" -out "$certpath/gm${type}.csr" 2> /dev/null
     fi
     if [ -n "${no_agency}" ];then
@@ -417,12 +420,13 @@ gen_node_cert_with_index_and_extentions_gm(){
     name="$4"
     type="$5"
     extensions="$6"
-    keyIndex="$7"
+    keyType="$7"
+    keyIndex="$8"
     # add key index support
-    if [ -n "${keyIndex}" ];then
+    if [ "${keyType}" == "internalKey" ];then
         cp ../swsds.ini ./
         touch ${HOME}/.rnd
-        $SWSSL_CMD req -engine sdf -batch -sm3 -new -subj "/CN=$name/O=fisco-bcos/OU=${type}" -key "sm2_${keyIndex}" -keyform engine -config "$capath/gmcert.cnf" -out "$certpath/gm${type}.csr" 
+        $SWSSL_CMD req -engine sdf -batch -sm3 -new -subj "/CN=$name/O=fisco-bcos/OU=${type}" -key "sm2_${keyIndex}" -keyform engine -config "$capath/gmcert.cnf" -out "$certpath/gm${type}.csr"  2> /dev/null
         rm swsds.ini
     else
         $SWSSL_CMD genpkey -paramfile "$capath/gmsm2.param" -out "$certpath/gm${type}.key" 2> /dev/null
@@ -456,11 +460,11 @@ gen_node_cert_gm() {
     mkdir -p $ndpath
     
     if [ -n "${no_agency}" ] || [ "${agency_key_type_array[${agIndex}]}" != "internalKey" ];then
-        gen_node_cert_with_extensions_gm "$agpath" "$ndpath" "$node" node v3_req "${sign_key_array[${nodeIndex}]}"
-        gen_node_cert_with_extensions_gm "$agpath" "$ndpath" "$node" ennode v3enc_req "${enc_key_array[${nodeIndex}]}"
+        gen_node_cert_with_extensions_gm "$agpath" "$ndpath" "$node" node v3_req "${node_key_type_array[${nodeIndex}]}" "${sign_key_array[${nodeIndex}]}"
+        gen_node_cert_with_extensions_gm "$agpath" "$ndpath" "$node" ennode v3enc_req "${node_key_type_array[${nodeIndex}]}" "${enc_key_array[${nodeIndex}]}"
     else
-        gen_node_cert_with_index_and_extentions_gm "$agpath" "${agency_key_index_array[${agIndex}]}" "$ndpath" "$node" node v3_req "${sign_key_array[${nodeIndex}]}"
-        gen_node_cert_with_index_and_extentions_gm "$agpath" "${agency_key_index_array[${agIndex}]}" "$ndpath" "$node" ennode v3enc_req "${enc_key_array[${nodeIndex}]}"
+        gen_node_cert_with_index_and_extentions_gm "$agpath" "${agency_key_index_array[${agIndex}]}" "$ndpath" "$node" node v3_req "${node_key_type_array[${nodeIndex}]}" "${sign_key_array[${nodeIndex}]}"
+        gen_node_cert_with_index_and_extentions_gm "$agpath" "${agency_key_index_array[${agIndex}]}" "$ndpath" "$node" ennode v3enc_req "${node_key_type_array[${nodeIndex}]}" "${enc_key_array[${nodeIndex}]}"
     fi
     if [ "${node_key_type_array[${nodeIndex}]}" = "internalKey" ];then
         cp ../swsds.ini ./
@@ -497,8 +501,8 @@ generate_config_ini()
 {
     local output=${1}
     local ip=${2}
-    local offset=0
-    offset=$(get_value "${ip//[\.:]/_}_port_offset")
+    local offset="${5}"
+    #offset=$(get_value "${ip//[\.:]/_}_port_offset")
     local node_groups=(${3//,/ })
     local port_array=
     read -r -a port_array <<< "${port_start[*]}"
@@ -601,6 +605,21 @@ ${hsm_config}
     ;outgoing_bandwidth_limit=2
 EOF
     printf "  [%d] p2p:%-5d  channel:%-5d  jsonrpc:%-5d\n" "${node_index}" $(( offset + port_array[0] )) $(( offset + port_array[1] )) $(( offset + port_array[2] )) >>"${logfile}"
+}
+
+generate_swssl_sdf_conf(){
+    local output=${1}
+    cat << EOF > "${output}"
+openssl_conf=openssl_init
+[openssl_init]
+engines=engine_section
+[engine_section]
+sdf=sdf_section
+[sdf_section]
+init=1
+engine_id=sdf
+default_algorithms=ALL
+EOF
 }
 
 generate_swssl_ini()
@@ -931,7 +950,7 @@ generate_node_scripts()
     local docker_tag="v${compatibility_version}"
     generate_script_template "$output/start.sh"
     local ps_cmd="\$(ps aux|grep \${fisco_bcos}|grep -v grep|awk '{print \$2}')"
-    local start_cmd="OPENSSL_CONF=${HOME}/.fisco/swssl/ssl/swssl.cnf nohup \${fisco_bcos} -c config.ini >>nohup.out 2>&1 &"
+    local start_cmd="OPENSSL_CONF=./swssl.cnf nohup \${fisco_bcos} -c config.ini >>nohup.out 2>&1 &"
     local stop_cmd="kill \${node_pid}"
     local pid="pid"
     local log_cmd="tail -n20  nohup.out"
@@ -1614,7 +1633,8 @@ parse_ip_config()
             if [ -z "${ip_array[$n]}" -o -z "${node_agency_array[$n]}" -o -z "${group_array[$n]}" ];then
                 exit_with_clean "Please check ${config}, make sure there is no empty line!"
             fi
-            ports_array[nodeNum]=$(echo "${line}" | awk '{print $4}')
+            # ports_array[nodeNum]=$(echo "${line}" | awk '{print $4}')
+            # echo "node num=${nodeNum}, ports_array[nodeNum]=${ports_array[${nodeNum}]} "
             ((++nodeNum))
             continue;
         fi
@@ -1792,20 +1812,19 @@ for line in ${ip_array[*]};do
         if [ -n "${guomi_mode}" ];then
             mkdir -p "${sdk_path}/gm"
             if [ -n "${no_agency}" ] || [ "${agency_key_type_array[${agency_index}]}" != "internalKey" ];then
-                gen_node_cert_with_extensions_gm "${agency_gm_path}" "${sdk_path}/gm" "sdk" sdk v3_req
+                gen_node_cert_with_extensions_gm "${agency_gm_path}" "${sdk_path}/gm" "sdk" sdk v3_req "externalKey"
                 cp "${output_dir}/gmcert/gmca.crt" "${sdk_path}/gm/"
                 if [ -z "${no_agency}" ];then cat "${agency_gm_path}/gmagency.crt" >> "${sdk_path}/gm/gmca.crt";fi
-                gen_node_cert_with_extensions_gm "${agency_gm_path}" "${sdk_path}/gm" "sdk" ensdk v3enc_req
+                gen_node_cert_with_extensions_gm "${agency_gm_path}" "${sdk_path}/gm" "sdk" ensdk v3enc_req "externalKey"
                 $SWSSL_CMD ec -in "$sdk_path/gm/gmsdk.key" -text -noout 2> /dev/null | sed -n '7,11p' | sed 's/://g' | tr "\n" " " | sed 's/ //g' | awk '{print substr($0,3);}'  | cat > "${sdk_path}/gm/gmsdk.publickey"
             else
-                gen_node_cert_with_index_and_extentions_gm "${agency_gm_path}" "${agency_key_index_array[${agency_index}]}" "${sdk_path}/gm" "sdk" sdk v3_req
+                gen_node_cert_with_index_and_extentions_gm "${agency_gm_path}" "${agency_key_index_array[${agency_index}]}" "${sdk_path}/gm" "sdk" sdk v3_req "externalKey"
                 cp "${output_dir}/gmcert/gmca.crt" "${sdk_path}/gm/"
                 if [ -z "${no_agency}" ];then cat "${agency_gm_path}/gmagency.crt" >> "${sdk_path}/gm/gmca.crt";fi
-                gen_node_cert_with_index_and_extentions_gm "${agency_gm_path}" "${agency_key_index_array[${agency_index}]}" "${sdk_path}/gm" "sdk" ensdk v3enc_req
+                gen_node_cert_with_index_and_extentions_gm "${agency_gm_path}" "${agency_key_index_array[${agency_index}]}" "${sdk_path}/gm" "sdk" ensdk v3enc_req "externalKey"
                 $SWSSL_CMD x509 -outform PEM -in "${agency_gm_path}/gmagency.crt" -pubkey -out "${sdk_path}/gm/gmsdk.publickey"
                 # TODO check this
                 $SWSSL_CMD ec -engine sdf -in "${agency_key_index_array[${agency_index}]}" -text -noout 2> /dev/null | sed -n '7,11p' | sed 's/://g' | tr "\n" " " | sed 's/ //g' | awk '{print substr($0,3);}'  | cat > "${sdk_path}/gm/gmsdk.publickey"
-        
                 # $SWSSL_CMD engine sdf -t -post "GET_SM2_PUB:${agency_key_index_array[${agency_index}]}" 
                 # TODO generate public key
             fi
@@ -1817,38 +1836,44 @@ for line in ${ip_array[*]};do
     do
         if [ -n "$guomi_mode" ];then
             gen_node_cert_gm "${agency_gm_path}" "${node_dir}" "${the_node_index}" "${agency_index}"
-            # TODO check whether remove this check lead error
-            # privateKey=$($SWSSL_CMD ec -in "${node_dir}/${gm_conf_path}/gmnode.key" -text 2> /dev/null| sed -n '3,5p' | sed 's/://g'| tr "\n" " "|sed 's/ //g')
-            # len=${#privateKey}
-            # head2=${privateKey:0:2}
-            # private key should not start with 00
-            # if [ "64" != "${len}" ] || [ "00" == "$head2" ];then
-            #     rm -rf ${node_dir}
-            #     echo "continue gm because of length=${len} head=$head2" >>"${logfile}"
-            #     continue;
-            # fi
+            if [ ${node_key_type_array[${the_node_index}]} == "externalKey" ];then
+                privateKey=$($SWSSL_CMD ec -in "${node_dir}/${gm_conf_path}/gmnode.key" -text 2> /dev/null| sed -n '3,5p' | sed 's/://g'| tr "\n" " "|sed 's/ //g')
+                len=${#privateKey}
+                head2=${privateKey:0:2}
+                # private key should not start with 00
+                if [ "64" != "${len}" ] || [ "00" == "$head2" ];then
+                    rm -rf ${node_dir}
+                    echo "continue gm because of length=${len} head=$head2" >>"${logfile}"
+                    continue;
+                fi
+            fi
         fi
         break;
     done
     if [ -n "${guomi_mode}" ]; then
         nodeid="$(cat ${node_dir}/${gm_conf_path}/gmnode.nodeid)"
-        #remove original cert files
         mv ${node_dir}/${gm_conf_path} ${node_dir}/${conf_path}
-
         local node_groups=(${group_array[${the_node_index}]//,/ })
         for j in ${node_groups[@]};do
-                if [ -z "${groups_count[${j}]}" ];then groups_count[${j}]=0;fi
-        groups[${j}]=$"${groups[${j}]}node.${groups_count[${j}]}=${nodeid}
+            if [ -z "${groups_count[${j}]}" ];then groups_count[${j}]=0;fi
+            groups[${j}]=$"${groups[${j}]}node.${groups_count[${j}]}=${nodeid}
     "
-                ((++groups_count[j]))
+            ((++groups_count[j]))
         done
-        
     else
-        nodeid="$(cat ${node_dir}/${conf_path}/node.nodeid)"
+        nodeid="$(cat ${node_dir}/${conf_path}/node.nodeid)
+    "
     fi
     if [ "${old_ip}" != "${ip}" ];then
         old_ip="${ip}"
         ((++server_count))
+    fi
+    if [ -n "${use_ipv6}" ];then
+        ip_list="${ip_list}node.${the_node_index}=[${ip}]:$(( ${the_node_index} + port_start[0] ))
+    "
+    else
+        ip_list="${ip_list}node.${the_node_index}=${ip}:$(( ${the_node_index} + port_start[0] ))
+    "
     fi
     ((++the_node_index))
 done
@@ -1898,6 +1923,9 @@ for line in ${ip_array[*]};do
         
         if [ ${node_key_type_array[${the_node_index}]} == "internalKey" ];then
             generate_swssl_ini "${node_dir}/swsds.ini"
+            generate_swssl_sdf_conf "${node_dir}/swssl.cnf"
+        else
+            cp ${HOME}/.fisco/swssl/ssl/swssl.cnf "${node_dir}/swssl.cnf"
         fi
         generate_node_scripts "${node_dir}"
         if [[ -n "${deploy_mode}" ]];then
